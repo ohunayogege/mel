@@ -1,0 +1,7 @@
+Hi {{ invitee_name }}, You have been invited to an event on {{ site_name }}.
+
+{{ inviter_name }} is inviting you to edit and manage your {{ event_cat }} planning tools together.
+
+Click the below link to accept
+
+{{ accept_link }}

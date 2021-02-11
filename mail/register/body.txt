@@ -1,0 +1,6 @@
+Thanks for signing up for {{ site_name }}! We're excited to have you as an early user.
+
+
+Please verify your account by clicking on this link:
+
+{{ confirm_registration_link | safe }}

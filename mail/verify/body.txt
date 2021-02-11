@@ -1,0 +1,7 @@
+Hi {{ name }},
+
+Your Veriffication Code is:
+
+{{ code }}
+
+{{ verify_link | safe }}

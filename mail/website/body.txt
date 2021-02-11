@@ -1,0 +1,3 @@
+Hi {{ name }},
+
+Your Website "{{ site_name }}" ["{{ link }}"] is down or inactive

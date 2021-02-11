@@ -1,0 +1,1 @@
+Reset password link from {{ site_name }}

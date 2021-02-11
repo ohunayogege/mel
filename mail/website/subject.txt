@@ -1,0 +1,1 @@
+Notification from {{ site_name }}. Your website {{ link }} is down

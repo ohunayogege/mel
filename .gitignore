@@ -1,0 +1,13 @@
+env/
+/env
+/env/
+env
+.env
+
+mel/settings.py
+/mel/settings.py
+*__pycache__
+*__pycache__*
+db.sqlite3
+sent_emails/
+*migrations/
