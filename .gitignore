@@ -13,3 +13,11 @@ sent_emails/
 *migrations/
 media
 videos
+media*
+*media
+media/*
+media/
+/media/
+/videos
+videos/
+/videos/
