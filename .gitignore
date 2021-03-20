@@ -11,3 +11,5 @@ mel/settings.py
 db.sqlite3
 sent_emails/
 *migrations/
+media
+videos
