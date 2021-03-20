@@ -1,0 +1,200 @@
+{% extends 'admins/app.html' %}
+
+{% block body %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="iq-card">
+                <div class="iq-card-header d-flex justify-content-between">
+                <div class="iq-header-title">
+                    <h4 class="card-title">Add New Video</h4>
+                </div>
+                </div>
+                <div class="iq-card-body">
+                    <!-- Progress bar -->
+                    <div class="progress">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <div id="uploadStatus"></div>
+                <form id="uploadVideo">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <div class="row">
+                            <div class="col-12 form-group">
+                                <input type="text" id="title" class="form-control" placeholder="Title">
+                            </div>
+                            <input type="hidden" id="slug" class="form-control" placeholder="Slug">
+                            <div class="col-12 form_gallery form-group">
+                                <label id="gallery2" for="form_gallery-upload">Upload Image</label>
+                                <input data-name="#gallery2" id="form_gallery-upload" class="form_gallery-upload"
+                                    type="file" accept=".png, .jpg, .jpeg">
+                            </div>
+                            <div class="col-12 form_gallery form-group">
+                                <label for="form_gallery-upload">Upload Short Video</label>
+                                <input id="short-video" class="form_video-upload"
+                                    type="file" accept="video/*">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <select class="form-control cat" id="category">
+                                    <option disabled="">Movie Category</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <input type="text" id="price" class="form-control" placeholder="Price">
+                            </div>
+                            <div class="col-12 form-group">
+                                <textarea id="description" name="text" rows="5" class="form-control"
+                                    placeholder="Description"></textarea>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="d-block position-relative">
+                                    <div id="videoSourceWrapper">
+                                        <video id="videoScreen" style="width: 100%; object-fit: contain; height: 150px;" controls>
+                                           <source id="videoSource"/>
+                                        </video>
+                                     </div>
+                                <br/>
+                                <div class="form_video-upload">
+                                    <input type="file" accept="video/mp4,video/x-m4v,video/*" id="main_video">
+                                    <p>Upload video</p>
+                                </div>
+                                </div>
+                            
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 form-group">
+                            <input type="text" id="tags" class="form-control" placeholder="Tags seperated with commas">
+                        </div>
+                        <div class="col-sm-6 form-group">
+                        <input type="text" class="form-control" id="duration" placeholder="Video Duration">
+                        </div>
+                        <br/>
+                        <div class="col-12 form-group ">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <button type="reset" class="btn btn-danger">cancel</button>
+                        </div>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #videoSourceWrapper {
+        position: fixed;
+        left: 0;
+        z-index: 99999;
+        bottom: 0;
+        width: 20%;
+        height: 150px;
+        object-fit: contain;
+        background-color: black;
+    }
+</style>
+<script src="/static/assets/js/jquery.min.js"></script>
+<script type="text/javascript">
+    $("#slug").attr("readonly", "readonly");
+    $("#title").keyup(function(){
+        var Slug = $("#title").val();
+        Slug = Slug.toLowerCase();
+        Slug = Slug.replace(/[^a-zA-Z0-9]+/g,'-');
+        $("#slug").val(Slug);
+    });
+
+    $(document).ready(function(){
+        $("#videoSourceWrapper").hide();
+    });
+
+    $('#main_video').on('change',
+        function() {
+            var fileInput = document.getElementById("main_video");
+            // console.log('Trying to upload the video file: %O', fileInput);
+            if ('files' in fileInput) {
+                if (fileInput.files.length === 0) {
+                    alert("Select a file to upload");
+                } else {
+                    var $source = $('#videoSource');
+                    $source[0].src = URL.createObjectURL(this.files[0]);
+                    $source.parent()[0].load();
+                    $("#videoSourceWrapper").show();
+                    var dur = document.getElementById("videoScreen");
+                    console.log(dur.duration);
+                    $("#duration").val(dur.duration);
+                }
+            } else {
+                console.log('No found "files" property');
+            }
+        }
+    );
+    
+    // File upload via Ajax
+    $("#uploadVideo").on('submit', function(e){
+        e.preventDefault();
+        var thumbn = $("#form_gallery-upload").val();
+        var thumb_img = thumbn.substring(12);
+        const fd = new FormData(this);
+        console.log(fd);
+        // console.log("{{csrf_token}}");
+        // fd.append("csrfmiddlewaretoken","{{csrf_token}}")
+        $.ajax({
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = ((evt.loaded / evt.total) * 100);
+                        $(".progress-bar").width(percentComplete + '%');
+                        $(".progress-bar").html(percentComplete+'%');
+                    }
+                }, false);
+                return xhr;
+            },
+            type: 'POST',
+            url: "{% url 'add_video_ajax' %}",
+            data: {fd},
+            // data: {
+            //     title : $('#title').val(),
+            //     slug : $('#slug').val(),
+            //     thumbnail : $("#form_gallery-upload").get(0).files[0],
+            //     short_video : $('#short_video').val(),
+            //     main_video : $('#main_video').val(),
+            //     video_length : $('#duration').val(),
+            //     tags : $('#tags').val(),
+            //     category : $('.cat').val(),
+            //     amount : $('#price').val(),
+            //     description : $('#description').val(),
+            //     csrfmiddlewaretoken: '{{ csrf_token }}',
+            //     dataType: "json",
+            // },
+            enctype: 'multipart/form-data',
+            beforeSend: function(){
+                $(".progress-bar").width('0%');
+                $('#uploadStatus').html('<img src="images/loading.gif"/>');
+            },
+            error:function(){
+                $('#uploadStatus').html('<p style="color:#EA4335;">Video Upload failed, please try again.</p>');
+            },
+            success: function(resp){
+                console.log(resp);
+                // var resp = JSON.stringify(resp);
+                // console.log(resp);
+                if(resp.success){
+                    $('#uploadVideo')[0].reset();
+                    $('#uploadStatus').html('<p style="color:#28A74B;">Video has uploaded successfully!</p>');
+                }else if(resp.error){
+                    $('#uploadStatus').html("<p style='color:#EA4335;'>There was an error uploading. Try again later.</p>");
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

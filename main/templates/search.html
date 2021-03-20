@@ -1,0 +1,64 @@
+{% extends 'app.html' %}
+{% block title %}Search for {{ search_text }} {% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="video-block section-padding">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="main-title">
+                    <h6>Search for {{ search_text }}</h6>
+                </div>
+            </div>
+
+            {% if videos %}
+            {% for video in videos %}
+            <!-- Video -->
+            <div class="col-xl-3 col-sm-6 mb-3">
+                <div class="video-card history-video">
+                    <div class="video-card-image">
+                        <!-- <a class="video-close">3:50</a> -->
+                        <a class="play-icon" href="{% url 'single-video' video.slug %}"><i class="fas fa-play-circle"></i></a>
+                        <a href="{% url 'single-video' video.slug %}"><img class="img-fluid" src="/static/img/v1.png" alt=""></a>
+                        <div class="time">{{ video.length }}</div>
+                    </div>
+                    <div class="video-card-body">
+                        <div class="video-title">
+                            <a href="{% url 'single-video' video.slug %}">{{ video.title }}</a>
+                        </div>
+                        <div class="video-page text-success">
+                            <a title="" data-placement="top" data-toggle="tooltip" href="{% url 'cat' video.cat.slug %}" data-original-title="{{ video.cat.name }}">
+                                {{ video.cat.name }}
+                            </a>
+                            <i class="fas fa-check-circle text-success"></i>
+                            
+                        </div>
+                        <div class="video-view">
+                            {{ video.views }} views &nbsp;
+                            <i class="fas fa-calendar-alt"></i> 11 Months ago
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 mx-auto text-center  pt-4 pb-5">
+                        <h1><img alt="404" src="/static/img/404.png" class="img-fluid"></h1>
+                        <h1>Sorry! {{ search_text }} not found.</h1>
+                        <p class="land">Unfortunately the video you are looking for cannot be found.</p>
+                        <div class="mt-5">
+                            <a class="btn btn-outline-primary" href="{% url 'home' %}"><i class="mdi mdi-home"></i> GO TO HOME PAGE</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

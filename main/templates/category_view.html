@@ -1,0 +1,63 @@
+{% extends 'app.html' %}
+{% block title %}{{ cat.name }} - Mel Cakes{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <div class="video-block section-padding">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="main-title">
+                    
+                    <!-- <h6>Watch History</h6> -->
+                </div>
+            </div>
+
+            {% for video in videos %}
+            <!-- Video -->
+            <div class="col-xl-3 col-sm-6 mb-3">
+                <div class="video-card history-video">
+                    <div class="video-card-image">
+                        <a class="video-close">N{{ video.price }}</a>
+                        <a class="play-icon" href="{% url 'single-video' video.slug %}"><i class="fas fa-play-circle"></i></a>
+                        <a href="{% url 'single-video' video.slug %}"><img class="img-fluid" src="{{ video.thumbnail.url }}" alt=""></a>
+                        <div class="time">{{ video.length }}</div>
+                    </div>
+                    <div class="video-card-body">
+                        <div class="video-title">
+                            <a href="{% url 'single-video' video.slug %}">{{ video.title }}</a>
+                        </div>
+                        <div class="video-page text-success">
+                            <a title="" data-placement="top" data-toggle="tooltip" href="{% url 'cat' video.cat.slug %}" data-original-title="{{ cat.name }}">
+                                {{ cat.name }}
+                            </a>
+                            <i class="fas fa-check-circle text-success"></i>
+                            
+                        </div>
+                        <div class="video-view">
+                            {{ video.views }} views &nbsp;
+                            <i class="fas fa-calendar-alt"></i> {{ video.uploaded_on.date }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+
+        </div>
+    </div>
+</div>
+<style>
+    @media (max-width: 575.98px){
+        .video-card-image img {
+            width: 100%;
+            height: 135px;
+            object-fit: contain;
+        }
+    }
+
+    .video-card-image img {
+        width: 100%;
+        height: 135px;
+        object-fit: contain;
+    }
+</style>
+{% endblock %}

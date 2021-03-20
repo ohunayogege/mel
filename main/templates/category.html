@@ -1,0 +1,33 @@
+{% extends 'app.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="video-block section-padding">
+        <div class="row">
+
+            {% for cat in cats %}
+            <div class="col-xl-3 col-sm-6 mb-3">
+                <div class="card text-white bg-primary o-hidden h-100 border-none">
+                    <div class="card-body">
+                        <div class="card-body-icon">
+                            <i class="fas fa-fw fa-users"></i>
+                        </div>
+                        <div class="mr-5">
+                            <b>{{ cat.name }}</b> 
+                        </div>
+                    </div>
+                    <a class="card-footer text-white clearfix small z-1" href="{% url 'cat' cat.slug %}">
+                        <span class="float-left">View Category</span>
+                        <span class="float-right">
+                            <i class="fas fa-angle-right"></i>
+                        </span>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

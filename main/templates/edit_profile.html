@@ -1,0 +1,146 @@
+{% extends 'app.html' %}
+
+{% block body %}
+<div class="container-fluid upload-details">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="main-title">
+                <h6>Edit Profile</h6>
+            </div>
+        </div>
+    </div>
+
+    <form id="editProfile">
+        <div id="output" class="text-center text-primary font-weight-medium alert"></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label">First Name <span class="required">*</span></label>
+                    <input class="form-control border-form-control" id="first_name" value="{{ user.first_name }}" placeholder="{{ user.first_name }}" type="text" required>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label">Last Name <span class="required">*</span></label>
+                    <input class="form-control border-form-control" id="last_name" value="{{ user.last_name }}" placeholder="{{ user.last_name }}" type="text" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label">Phone Number<span class="required">*</span></label>
+                    <input class="form-control border-form-control" id="mobile" value="{{ user.mobile }}" placeholder="{{ user.mobile }}" type="number">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label">Email Address <span class="required">*</span></label>
+                    <input class="form-control border-form-control" disabled id="email" value="{{ user.email }}" placeholder="{{ user.email }}" type="email" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label">Gender <span class="required">*</span></label>
+                    <select class="custom-select" id="gender">
+                        {% if user.gender == 'Male' %}
+                        <option value="{{ user.gender }}" selected disabled>{{ user.gender }}</option>
+                        <option value="Female">Female</option>
+                        {% else %}
+                        <option value="{{ user.gender }}" selected disabled>{{ user.gender }}</option>
+                        <option value="Male">Male</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label">Username <span class="required">*</span></label>
+                    <input class="form-control border-form-control" id="username" disabled value="{{ user.username }}" placeholder="{{ user.username }}" type="text">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label class="control-label">Address <span class="required">*</span></label>
+                    <textarea class="form-control border-form-control" id="address" placeholder="{{ user.address }}">{{ user.address }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 text-right">
+                <!-- <button type="reset" class="btn btn-danger border-none"> Cancel </button> -->
+                <button type="submit" id="editProfileBtn" class="btn btn-success border-none"> Save Changes </button>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script src="/static/vendor/jquery.min.js"></script>
+
+<script type="text/javascript">
+    // Get Form and Sumbit
+    $('#editProfile').on('submit', function(e){
+
+        e.preventDefault();
+
+          $.ajax({
+               type : "POST",
+               url: "{% url 'edit_profile_ajax' %}", /* django ajax posting url  */
+               data: {
+                first_name : $('#first_name').val(),
+                last_name : $('#last_name').val(),
+                email : $('#email').val(),
+                username : $('#username').val(),
+                gender : $('#gender').val(),
+                mobile : $('#mobile').val(),
+                address : $('#address').val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                dataType: "json",
+
+               },
+
+               beforeSend: function() {
+                $("#editProfileBtn").text("Please Wait...");
+               },
+               
+               success: function(data){
+                $("#editProfileBtn").text("Save Changes");
+                if (data.error){
+                    $('#editProfile').find('.alert').removeClass('alert-success');
+                    $('#editProfile').find('.alert').removeClass('none');
+                    $('#editProfile').find('.alert').addClass('alert-warning');
+                    $('#output').html(data.error) /* response message */
+                }
+                else{
+                    $('#editProfile').find('.alert').removeClass('alert-warning');
+                    $('#editProfile').find('.alert').removeClass('none');
+                    $('#editProfile').find('.alert').addClass('alert-success');
+                    $('#output').html(data.success) /* response message */
+                    // window.setTimeout(function(){
+                    //     $('#signin').find('input[type=text], textarea').val('');
+                    // }, 700);
+                    setTimeout(redirect, 2000);
+                    function redirect(){
+                       window.location.reload();
+                    }
+                }
+                
+               },
+
+               failure: function() {
+          //       console.log(typeof(data.msg));
+                // $('.alert').html(data.msg+"hello")
+                   
+               }
+
+
+       });
+    });
+</script>
+
+{% endblock %}

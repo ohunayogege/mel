@@ -58,7 +58,7 @@ class User(AbstractUser):
 	first_name = models.CharField(max_length=200, null=True)
 	last_name = models.CharField(max_length=200, null=True)
 	gender = models.CharField(max_length=10, default='', choices=user_gender)
-	mobile = models.CharField(max_length=200, default='', unique=True)
+	mobile = models.CharField(max_length=200, default='', blank=True)
 	address = models.TextField(default="", blank=True)
 	activate = models.BooleanField(default=False)
 
@@ -105,3 +105,82 @@ def update_expired(sender, instance, *args, **kwargs):
 		instance.expired = True
 	else:
 		instance.expired = False
+
+
+class Category(models.Model):
+	name = models.CharField(max_length=100, default='')
+	slug = models.SlugField(max_length=100, default='')
+	description = models.TextField(default='', blank=True)
+
+	def __str__(self):
+		return self.name
+
+class Video(models.Model):
+	title = models.CharField(max_length=150, default='')
+	slug = models.SlugField(max_length=200, default='')
+	cat = models.ForeignKey(Category, on_delete=models.CASCADE, default=None)
+	thumbnail = models.ImageField(upload_to='videos/images/')
+	main_video = models.FileField(upload_to='videos/', blank=True)
+	snippet_video = models.FileField(upload_to='videos/snippet/', blank=True)
+	description = models.TextField(default='')
+	length = models.CharField(max_length=10, default='')
+	tags = models.TextField(default='', blank=True)
+	price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+	uploaded_on = models.DateTimeField(auto_now_add=True)
+	updated_on = models.DateTimeField(auto_now=True)
+	views = models.BigIntegerField(default=1)
+
+	def __str__(self):
+		return self.title
+
+
+class Comment(models.Model):
+	user = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default='Anonnymous User')
+	video = models.ForeignKey(Video, on_delete=models.CASCADE, default=None)
+	text = models.TextField(default='')
+	date = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.video.title
+
+
+class UserVideo(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+	video = models.OneToOneField(Video, on_delete=models.CASCADE, default=None)
+	added = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.video.title
+
+
+class Cart(models.Model):
+	item = models.ForeignKey(Video, on_delete=models.CASCADE, default=None)
+	amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+	ordered = models.BooleanField(default=False)
+	date = models.DateField(auto_now_add=True)
+
+	def __str__(self):
+		return self.item.title
+
+class Payment(models.Model):
+	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+	charge_ref = models.CharField(max_length=100, default='')
+	amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+	video = models.ForeignKey(Video, on_delete=models.DO_NOTHING, null=True)
+	date = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.user.email
+
+class OrderItem(models.Model):
+	ref_code = models.CharField(max_length=100, default='', unique=True)
+	product = models.ManyToManyField(Cart)
+	amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+	payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True)
+	paid = models.BooleanField(default=False)
+	ordered = models.BooleanField(default=False)
+	date = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.ref_code + ' ' + self.product.item.title

@@ -35,8 +35,8 @@
                             <div class="row">
                                 <div class="col-md-8 mx-auto text-center  pt-4 pb-5">
                                     <h1><img alt="404" src="/static/img/404.png" class="img-fluid"></h1>
-                                    <h1 id="messageHead">Account Verified Successful</h1>
-                                    <p class="land" id="message">Thank you for verifying your account.</p>
+                                    <h1 id="messageHead">{{messageHead}}</h1>
+                                    <p class="land" id="message">{{ message }}</p>
                                     <div class="mt-5">
                                         <a id="linkTo" class="btn btn-outline-primary" href="{% url 'home' %}"><i class="mdi mdi-home"></i> Continue</a>
                                     </div>

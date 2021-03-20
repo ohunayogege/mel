@@ -1,0 +1,372 @@
+{% extends 'app.html' %}
+{% block title %} {{ video.title }} - Mel Cakes{% endblock %}
+{% block body %}
+<div class="container-fluid pb-0">
+    <div class="video-block-right-list section-padding">
+        <div class="row mb-4">
+
+            <div class="col-md-8">
+                <div class="single-video">
+                    <video controls poster="{{ video.thumbnail.url }}" controlsList="nodownload" disablePictureInPicture>
+                        {% if user_video %}
+                        <source src="{{ video.main_video.url }}" type="video/mp4" />
+                        {% else %}
+                        <source src="{{ video.snippet_video.url }}" type="video/mp4" />
+                        {% endif %}
+                    </video>
+                    <!-- <iframe width="100%" height="315" src="{{ video.snippet_video.url }}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe> -->
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="video-slider-right-list">
+                    <div class="video-card video-card-list active">
+                        <div class="video-card-image">
+                            <a class="play-icon" href="javascript:;"><i class="fas fa-play-circle"></i></a>
+                            <a href="javascript:;"><img class="img-fluid" src="{{ video.thumbnail.url }}" alt=""></a>
+                            <div class="time">{{ video.length }}</div>
+                        </div>
+                        <div class="video-card-body">
+                            <div class="video-title">
+                                <a href="javascript:;">{{ video.title }}</a>
+                            </div>
+                            <div class="video-page text-success">
+                                {{ video.cat.name }}
+                                {% if user_video %}
+                                <a title="" data-placement="top" data-toggle="tooltip" href="javascript:;" data-original-title="{{ video.cat.name }}">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="video-view">
+                                {{ video.views }} views &nbsp;<i class="fas fa-calendar-alt"></i> {{ video.uploaded_on.date }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% for vid in user_videos %}
+                    <div class="video-card video-card-list">
+                        <div class="video-card-image">
+                            <a class="play-icon" href="{% url 'single-video' vid.video.slug %}"><i class="fas fa-play-circle"></i></a>
+                            <a href="{% url 'single-video' vid.video.slug %}"><img class="img-fluid" src="{{ vid.video.thumbnail.url }}" alt=""></a>
+                            <div class="time">{{ vid.video.length }}</div>
+                        </div>
+                        <div class="video-card-body">
+                            <div class="video-title">
+                                <a href="{% url 'single-video' vid.video.slug %}">{{ vid.video.title }}</a>
+                            </div>
+                            <div class="video-page text-success"> 
+                                <a title="" data-placement="top" data-toggle="tooltip" href="{% url 'cat' vid.video.cat.slug %}" data-original-title="Verified">
+                                    Education <i class="fas fa-check-circle text-success"></i>
+                                </a>
+                            </div>
+                            <div class="video-view">
+                                {{ vid.video.views }} views &nbsp;<i class="fas fa-calendar-alt"></i> {{ vid.video.uploaded_on.date }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                
+                </div>
+            </div>
+        
+        </div>
+    </div>
+    {% load humanize %}
+    <div class="video-block section-padding">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="single-video-left">
+                    <div class="single-video-title box mb-3">
+                        <h2>{{ video.title }}</h2>
+                        <p class="mb-0"><i class="fas fa-eye"></i> {{ video.views|intcomma }} views</p>
+                    </div>
+                    {% if user_video is None %}
+                    <div class="single-video-author box mb-3">
+                        <div class="float-right">
+                            {% if request.user.is_authenticated %}
+                            <button id="buy-btn" class="btn btn-danger" type="button"><strong>Buy Now</strong></button> 
+                            <button class="btn btn btn-outline-danger" type="button"><i class="fas fa-bell"></i></button>
+                            {% else %}
+                            <button id="loginPop" class="btn btn-danger" type="button"><strong>Login To Buy</strong></button> 
+                            <button class="btn btn btn-outline-danger" type="button"><i class="fas fa-user"></i></button>
+                            {% endif %}
+                        </div>
+                        <img class="img-fluid" src="/static/img/s4.png" alt="">
+                        <p>
+                            <a href="#"><strong>N{{ video.price }}</strong></a> 
+                            <span title="" data-placement="top" data-toggle="tooltip" data-original-title="Verified">
+                                <i class="fas fa-check-circle text-success"></i>
+                            </span>
+                        </p>
+                        <small>Published on {{ video.date }}</small>
+                    </div>
+                    {% endif %}
+                    <div class="single-video-info-content box mb-3">
+                        <h6>Category :</h6>
+                        <p>{{ video.cat.name }}</p>
+                        <h6>About :</h6>
+                        <p>{{ video.description }}</p>
+                        {% if video_tags is not None %}
+                        <h6>Tags :</h6>
+                        
+                        <p class="tags mb-0">
+                            {% for tag in video_tags %}
+                            <span><a href="{% url 'search' %}?q={{tag}}">{{ tag }}</a></span>
+                            {% endfor %}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="box mb-3 single-video-comment-tabs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="retro-comments-tab" data-toggle="tab" href="#retro-comments" role="tab" aria-controls="retro" aria-selected="false">
+                                    {% if comm_count < 2 %}
+                                    {{ comm_count }} Comment
+                                    {% else %}
+                                    {{ comm_count }} Comments
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <!-- <li class="nav-item">
+                                <a class="nav-link" id="disqus-comments-tab" data-toggle="tab" href="#disqus-comments" role="tab" aria-controls="disqus" aria-selected="true">Disqus Comments</a>
+                            </li> -->
+                        </ul>
+                        <div class="tab-content">
+                            <!-- <div class="tab-pane fade" id="disqus-comments" role="tabpanel" aria-labelledby="disqus-comments-tab">
+                                <h1>Soon...</h1>
+                            </div> -->
+                            <div class="tab-pane fade show active" id="retro-comments" role="tabpanel" aria-labelledby="retro-comments-tab">
+                                {% if user.is_authenticated %}
+                                <div class="reviews-members pt-0">
+                                    <div class="media">
+                                        <a href="#">
+                                            <img class="mr-3" src="/static/img/s1.png" alt="Generic placeholder image">
+                                        </a>
+                                        <div class="media-body">
+                                            <form id="make__comment">
+                                                <div id="output" style="display: none;" class="text-center text-primary font-weight-medium alert"></div>
+                                            <div class="form-members-body">
+                                                <textarea rows="4" id="comment" placeholder="Write a review on {{ video.title }}" class="form-control"></textarea>
+                                            </div>
+                                            <div class="form-members-footer text-right mt-2">
+                                                <b class="float-left">
+                                                    {% if comm_count < 1 %}
+                                                    No comment yet. Be the first to comment on {{ video.title }}
+                                                    {% elif comm_count == 1 %}
+                                                    {{ comm_count }} Comment
+                                                    {% else %}
+                                                    {{ comm_count }} Comments
+                                                    {% endif %}
+                                                </b>
+                                                <br/>
+                                                <br/>
+                                                <button class="btn btn-outline-danger btn-sm" type="reset">CANCEL</button> 
+                                                <button id="make__commentBtn" class="btn btn-danger btn-sm" type="submit">COMMENT</button>
+                                            </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="form-members-footer text-center mt-2">
+                                    <b class="text-muted"><a href="{% url 'login' %}">Login</a> to make a comment</b>
+                                </div>
+                                <br/><br/>
+                                {% endif %}
+                                {% for com in comments %}
+                                <div class="reviews-members">
+                                    <div class="media">
+                                        <a href="#">
+                                            <img class="mr-3" src="/static/img/s2.png" alt="Generic placeholder image">
+                                        </a>
+                                        <div class="media-body">
+                                            <div class="reviews-members-header">
+                                                <h6 class="mb-1">
+                                                    <a class="text-black" href="javascript:;">
+                                                        {{ com.user.first_name }} {{ com.user.last_name }} 
+                                                    </a> 
+                                                    <small class="text-gray">{{ com.date }}</small>
+                                                </h6>
+                                            </div>
+                                            <div class="reviews-members-body">
+                                                <p> 
+                                                    {{ com.text }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="single-video-right">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="adblock">
+                                <div class="img">
+                                    Google AdSense<br>
+                                    336 x 280
+                                </div>
+                            </div>
+                            <div class="main-title">
+                                <!-- <div class="btn-group float-right right-action">
+                                    <a href="#" class="right-action-link text-gray" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Sort by <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-fw fa-star"></i> &nbsp; Top Rated</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-fw fa-signal"></i> &nbsp; Viewed</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-fw fa-times-circle"></i> &nbsp; Close</a>
+                                    </div>
+                                </div> -->
+                                <h6><b>Suggessted Videos</b></h6>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            {% for rand in random_videos %}
+                            <div class="video-card video-card-list">
+                                <div class="video-card-image">
+                                    <a class="play-icon" href="{% url 'single-video' rand.slug %}"><i class="fas fa-play-circle"></i></a>
+                                    <a href="{% url 'single-video' rand.slug %}"><img class="img-fluid" src="{{ rand.thumbnail.url }}" alt=""></a>
+                                    <div class="time">{{ rand.length }}</div>
+                                </div>
+                                <div class="video-card-body">
+                                    <!-- <div class="btn-group float-right right-action">
+                                        <a href="#" class="right-action-link text-gray" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a class="dropdown-item" href="#"><i class="fas fa-fw fa-star"></i> &nbsp; Top Rated</a>
+                                            <a class="dropdown-item" href="#"><i class="fas fa-fw fa-signal"></i> &nbsp; Viewed</a>
+                                            <a class="dropdown-item" href="#"><i class="fas fa-fw fa-times-circle"></i> &nbsp; Close</a>
+                                        </div>
+                                    </div> -->
+                                    <div class="video-title">
+                                        <a href="{% url 'single-video' rand.slug %}">{{ rand.title }}</a>
+                                    </div>
+                                    <div class="video-page text-success">
+                                        <a title="" data-placement="top" data-toggle="tooltip" href="{% url 'cat' rand.cat.slug %}" data-original-title="{{ rand.cat.name }} category">{{ rand.cat.name }} </a>
+                                    </div>
+                                    <div class="video-view">
+                                        {{ rand.views }} views &nbsp;<i class="fas fa-calendar-alt"></i> {{ rand.uploaded_on.date }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/vendor/jquery/jquery.min.js" type="text/javascript"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    $('#make__comment').on('submit', function(e){
+        e.preventDefault();
+        
+        if($("#comment").val().length < 5){
+            alert("Please enter an understanding comment.");
+            return false;
+        }
+
+        $.ajax({
+            type : "POST",
+            url: "{% url 'make_comment' %}", /* django ajax posting url  */
+            data: {
+            comment : $('#comment').val(),
+            video : "{{ video }}",
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            dataType: "json",
+
+            },
+
+            beforeSend: function() {
+            $("#make__commentBtn").text("Please Wait...");
+            },
+            
+            success: function(data){
+            $("#make__commentBtn").text("COMMENT");
+            if (data.error){
+                $('#make__comment').find('.alert').removeClass('alert-success');
+                $('#make__comment').find('.alert').removeAttr("style", "display");
+                $('#make__comment').find('.alert').addClass('alert-warning');
+                $('#output').html(data.error); /* response message */
+                setTimeout(clearMessage, 3000);
+                function clearMessage(){
+                    $('#make__comment').find('.alert').attr("style", "display: none");
+                }
+            }
+            else{
+                $('#make__comment').find('.alert').removeClass('alert-warning');
+                $('#make__comment').find('.alert').removeAttr("style", "display");
+                $('#make__comment').find('.alert').addClass('alert-success');
+                $('#output').html(data.success); /* response message */
+                // window.setTimeout(function(){
+                //     $('#signin').find('input[type=text], textarea').val('');
+                // }, 700);
+                setTimeout(redirect, 1000);
+                function redirect(){
+                    window.location.reload();
+                }
+                function clearMessage(){
+                    $('#make__comment').find('.alert').attr("style", "display: none");
+                }
+            }
+            
+            },
+
+            failure: function() {
+        //       console.log(typeof(data.msg));
+            // $('.alert').html(data.msg+"hello")
+                
+            }
+
+
+    });
+    });
+
+    const paymentForm = document.getElementById('buy-btn');
+    paymentForm.addEventListener("click", payWithPaystack, false);
+    function payWithPaystack(e) {
+        e.preventDefault();
+        let handler = PaystackPop.setup({
+            key: '{{ paystack_key }}', // Replace with your public key
+            email: '{{ user.email }}',
+            amount: '{{ video.price }}' * 100,
+            ref: ''+Math.floor((Math.random() * 1000000000) + 1), // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
+            // label: "Optional string that replaces customer email"
+            onClose: function(){
+                alert('Payment Cancelled.');
+            },
+            callback: function(response){
+                $.ajax({
+                    url: 'http://localhost/verify_transaction?video={{ video }}&reference='+ response.reference,
+                    method: 'get',
+                    success: function (res) {
+                        // the transaction status is in response.data.status
+                        if(res.data.status == 'success') {
+                            let message = 'Payment completed!    Thanks for purchasing {{ video.title }}.\n \n \nClick OK to Continue';
+                            alert(message);
+                            location.reload();
+                        } else {
+                            let message = 'Payment was not completed! Click OK to Try Again';
+                            alert(message);
+                            location.reload();
+                        }
+                    }
+                });
+                
+            }
+        });
+        handler.openIframe();
+    }
+</script>
+{% endblock %}

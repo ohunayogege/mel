@@ -1,0 +1,96 @@
+{% extends 'admins/app.html' %}
+
+{% block body %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="iq-card">
+                <div class="iq-card-header d-flex justify-content-between">
+                <div class="iq-header-title">
+                    <h4 class="card-title">Update Category</h4>
+                </div>
+                </div>
+                <div class="iq-card-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <form id="addComment">
+                            <div class="form-group">
+                            <input type="text" id="name" value="{{ cat.name }}" class="form-control" placeholder="Name">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="slug" value="{{ cat.slug }}" class="form-control" placeholder="Slug">
+                            </div>
+                            <div class="form-group">
+                            <textarea id="description" rows="5" class="form-control"
+                            placeholder="Description">{{ cat.description }}</textarea>
+                            <div class="form-group ">
+                            <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
+                            <button type="reset" class="btn btn-danger">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/assets/js/jquery.min.js"></script>
+<script type="text/javascript">
+    $("#slug").attr("readonly", "readonly");
+    $("#slug").attr("type", "hidden");
+    $("#name").keyup(function(){
+        var Slug = $("#name").val();
+        Slug = Slug.toLowerCase();
+        Slug = Slug.replace(/[^a-zA-Z0-9]+/g,'-');
+        $("#slug").val(Slug);
+    });
+
+
+    $('#addComment').on('submit', function(e){
+    
+        e.preventDefault();
+
+        $.ajax({
+            type : "POST",
+            url: "{% url 'edit-cat_ajax' %}", /* django ajax posting url  */
+            data: {
+                name : $('#name').val(),
+                slug : $('#slug').val(),
+                cat_obj : "{{ cat.slug }}",
+                description : $('#description').val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                dataType: "json",
+
+            },
+
+            beforeSend: function() {
+                $("#btnSubmit").text("Adding...");
+            },
+            
+            success: function(data){
+                $("#btnSubmit").text("Submit");
+                if (data.error){
+                    alert(data.error)
+                }
+                else{
+                    $("#btnSubmit").text("Submit");
+                    if(!alert(data.success)){window.location.href = "{% url 'cats' %}";}
+                }
+                
+            },
+
+            failure: function() {
+        //       console.log(typeof(data.msg));
+                // $('.alert').html(data.msg+"hello")
+                
+            }
+
+
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'admins/app.html' %}
+
+{% block body %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="iq-card">
+                <div class="iq-card-header d-flex justify-content-between">
+                    <div class="iq-header-title">
+                        <h4 class="card-title">User Lists</h4>
+                    </div>
+                </div>
+                <div class="iq-card-body">
+                    <div class="table-view">
+                        <table class="data-tables table movie_table" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">Profile</th>
+                                    <th style="width: 10%;">Name</th>
+                                    <th style="width: 20%;">Contact</th>
+                                    <th style="width: 20%;">Email</th>
+                                    <th style="width: 10%;">Status</th>
+                                    <th style="width: 10%;">Join Date</th>
+                                    <th style="width: 10%;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <img src="/static/assets/images/user/01.jpg" class="img-fluid avatar-50" alt="author-profile">
+                                    </td>
+                                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                                    <td>{{ user.mobile }}</td>
+                                    <td>{{ user.email }}</td>
+                                    {% if user.is_active == True %}
+                                        <td><span class="badge iq-bg-success">Active</span></td>
+                                    {% else %}
+                                        <td><span class="badge iq-bg-warning">Inactive</span></td>
+                                    {% endif %}
+                                    <td>{{ user.date_joined.date }}</td>
+                                    <td>
+                                        <div class="flex align-items-center list-user-action">
+                                            <a class="iq-bg-success" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="#"><i
+                                            class="ri-pencil-line"></i>
+                                            </a>
+                                            <a class="iq-bg-primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete" href="#"><i
+                                                class="ri-delete-bin-line"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                    {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

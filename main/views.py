@@ -1,12 +1,15 @@
 from django.http.response import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, UserVerify, UserPassToken
+from .models import Category, Comment, Payment, User, UserVerify, UserPassToken, UserVideo, Video
 from django.contrib.auth.hashers import make_password
 from django.contrib import auth
 import secrets
+import requests
+import random
 import os
 import datetime
 from datetime import timedelta
@@ -24,7 +27,61 @@ def gen_email_code(length, charset="0123456789"):
 	return "".join([secrets.choice(charset) for _ in range(0, length)])
 
 def home(request):
-	return render(request, 'index.html')
+	videos = Video.objects.all().order_by("id").reverse()
+	context = {
+		'videos': videos
+	}
+	return render(request, 'index.html', context)
+
+def video_page(request, slug):
+	video = Video.objects.get(slug=slug)
+	comments = Comment.objects.filter(video=video).order_by("id").reverse()
+	if video.tags:
+		video_tags = video.tags.split(',')
+	else:
+		video_tags = None
+	user_video_check = UserVideo.objects.filter(video=video).exists()
+	if user_video_check:
+		user_video = UserVideo.objects.get(video=video)
+	else:
+		user_video = None
+	if request.user.is_authenticated:
+		user_videos = UserVideo.objects.filter(user=request.user).exclude(video=video)
+	else:
+		user_videos = None
+	object_list = list(Video.objects.filter(Q(title__contains=video.title) | Q(cat__name__contains=video.cat.name) | Q(tags__contains=video.tags)))
+	random.shuffle(object_list)
+	rand_videos = object_list[:10]
+	context = {
+		'video': video,
+		'comments': comments,
+		'comm_count': len(comments),
+		'paystack_key': settings.PAYSTACK_PUBLIC_KEY,
+		'user_video': user_video,
+		'video_tags': video_tags,
+		'user_videos': user_videos,
+		'random_videos': rand_videos
+	}
+	return render(request, 'single-video.html', context)
+
+class Verify_Payment(APIView):
+	def get(self, request):
+		user = request.user
+		reference = request.GET.get("reference")
+		video = request.GET.get("video")
+		vid = Video.objects.get(title=video)
+		url = 'https://api.paystack.co/transaction/verify/'+reference
+		headers = {
+			"Authorization": "Bearer " +settings.PAYSTACK_SECRET_KEY
+		}
+		x = requests.get(url, headers=headers)
+		if x.json()['status'] == False:
+			return False
+		results = x.json()
+		Payment.objects.create(user=user, charge_ref=results["data"]["reference"], amount=results["data"]["amount"], video=vid)
+		UserVideo.objects.create(user=user, video=vid)
+
+		return Response(results)
 
 
 def login(request):
@@ -35,11 +92,29 @@ def register(request):
 
 def verify_register(request):
 	token = request.GET.get("signature")
-	get_user = UserVerify.objects.get(email_code=token)
-	if get_user.expired:
-		return Response({'error': 'Verification link expired. Request another one.'})
-	# instance = UserVerify.objects.filter(id=get_user.id).update(email_verified=True, expires_in=dt.now() + timedelta(days=30))
-	return render(request, "verify_register.html")
+	check_token = UserVerify.objects.filter(email_code=token).exists()
+	if check_token == False:
+		message = 'Invalid Link or link has expired. Request for another link.'
+		messageHead = 'Error Verifying Account'
+		link = ""
+	else:
+		get_user = UserVerify.objects.get(email_code=token)
+		if get_user.expired:
+			message = 'Verification link expired. Request another one.'
+			messageHead = 'Error Verifying Account'
+			link = ""
+		else:
+			instance = UserVerify.objects.filter(id=get_user.id).update(email_verified=True, expires_in=dt.now() + timedelta(minutes=1))
+			User.objects.filter(email=get_user.user.email).update(activate=True)
+			message = 'Thank you for verifying your account.'
+			messageHead = 'Account Verified Successful'
+			link = ""
+	context = {
+		'messageHead': messageHead,
+		'message': message,
+		'link': link
+	}
+	return render(request, "verify_register.html", context)
 
 def reset_password(request):
 	return render(request, "reset_password.html")
@@ -270,3 +345,88 @@ class ChangePassword(APIView):
 
 
 		return Response({'success': 'Password updated successfully'}, status=status.HTTP_200_OK)
+
+
+def category(request):
+	cats = Category.objects.all()
+	context = {
+		'cats': cats
+	}
+	return render(request, "category.html", context)
+
+
+def category_view(request, slug):
+	cat = Category.objects.get(slug=slug)
+	videos = Video.objects.filter(cat=cat)
+	context = {
+		'videos': videos,
+		'cat': cat
+	}
+	return render(request, 'category_view.html', context)
+
+
+def profile(request, username):
+	user = User.objects.get(username=username)
+	user_videos = UserVideo.objects.filter(user=user)
+	context = {
+		'user': user,
+		'user_videos': user_videos,
+	}
+	return render(request, 'profile.html', context)
+
+def editprofile(request, username):
+	user = User.objects.get(username=username)
+	context = {
+		'user': user
+	}
+	return render(request, 'edit_profile.html', context)
+
+def search_page(request):
+	search_text = request.GET.get("q")
+	videos = Video.objects.filter(Q(title__contains=search_text) | Q(cat__name__startswith=search_text) | Q(tags__contains=search_text))
+	context = {
+		'videos': videos,
+		'search_text': search_text.capitalize()
+	}
+	return render(request, 'search.html', context)
+
+
+def search_tags(request):
+	search_text = request.GET.get("q")
+	videos = Video.objects.filter(Q(tags__contains=search_text))
+	context = {
+		'videos': videos,
+		'search_text': search_text.capitalize()
+	}
+	return render(request, 'search.html', context)
+
+
+def comment_ajax(request):
+	if request.is_ajax():
+		comment = request.POST.get("comment", None)
+		video_title = request.POST.get("video", None)
+
+		video = Video.objects.get(title=video_title)
+		user = request.user
+		instance = Comment.objects.create(user=user, video=video, text=comment)
+		if instance:
+			response = {"success": "Comment Added Successfully."}
+		else:
+			response = {"error": "Error adding comment. Try again"}
+		return JsonResponse(response)
+
+
+def profile_ajax(request):
+	if request.is_ajax():
+		user = request.user
+		instance = User.objects.filter(id=user.id).update(
+			first_name=request.POST['first_name'],
+			last_name=request.POST['last_name'],
+			mobile=request.POST['mobile'],
+			address=request.POST['address']
+		)
+		if instance:
+			response = {"success": "Profile Updated Successfully."}
+		else:
+			response = {"error": "Error updating profile. Try again"}
+		return JsonResponse(response)
